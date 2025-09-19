@@ -289,6 +289,15 @@ body.is-menu-closing .site-lockup {
 }
 
 .site-brand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  appearance: none;
+  cursor: pointer;
   font-family: var(--font-brand);
   font-size: clamp(24px, 2.5vw, 44px);
   font-weight: 700;
@@ -296,6 +305,18 @@ body.is-menu-closing .site-lockup {
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.995);
   text-shadow: 0 0 32px rgba(255, 255, 255, 0.28);
+  text-align: center;
+  transition: color 200ms ease;
+}
+
+.site-brand:hover {
+  color: rgba(255, 255, 255, 1);
+}
+
+.site-brand:focus-visible {
+  outline: none;
+  color: rgba(255, 255, 255, 1);
+  text-shadow: 0 0 26px rgba(255, 255, 255, 0.35);
 }
 
 .site-menu-toggle {
@@ -485,42 +506,62 @@ body.is-menu-closing .site-menu-toggle__icon span:nth-child(3) {
 
 @media (max-width: 720px) {
   .site-header {
-    top: clamp(18px, 5vw, 36px);
-    padding: 0 clamp(16px, 6vw, 28px);
+    position: relative;
+    top: 0;
+    left: 0;
+    right: 0;
+    transform: none;
+    width: 100%;
+    max-width: none;
+    padding: clamp(32px, 12vw, 48px) clamp(20px, 10vw, 40px);
+    min-height: calc(var(--viewport-unit) * 100);
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
   }
 
   .site-header__inner {
-    flex-direction: row;
+    position: relative;
+    flex: 1 1 auto;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: clamp(12px, 4vw, 20px);
+    justify-content: center;
+    gap: clamp(24px, 6vw, 32px);
   }
 
   .site-lockup {
-    flex: 1 1 auto;
-    align-items: center;
+    width: 100%;
+    justify-content: center;
   }
 
   .site-brand {
-    font-size: clamp(22px, 7vw, 32px);
+    font-size: clamp(38px, 16vw, 64px);
+    letter-spacing: 0.06em;
   }
 
   .site-menu-toggle {
-    width: clamp(48px, 14vw, 56px);
-    height: clamp(48px, 14vw, 56px);
-    margin-left: auto;
+    position: fixed;
+    top: clamp(20px, 9vw, 36px);
+    right: clamp(20px, 9vw, 36px);
+    width: clamp(44px, 16vw, 56px);
+    height: clamp(44px, 16vw, 56px);
+    margin: 0;
+    z-index: 40;
   }
 
   .site-menu-toggle__icon {
-    width: clamp(20px, 6vw, 28px);
-    height: clamp(14px, 5vw, 20px);
+    width: clamp(20px, 8vw, 28px);
+    height: clamp(14px, 6vw, 20px);
   }
 
   #sentences {
-    padding-inline: clamp(24px, 6vw, 60px);
+    padding: clamp(48px, 16vh, 120px) clamp(20px, 9vw, 52px) clamp(200px, 56vh, 360px);
   }
 
   .sentence {
-    min-height: 85vh;
+    min-height: 82vh;
   }
 
   .site-menu {

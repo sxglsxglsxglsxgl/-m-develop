@@ -300,3 +300,29 @@
     });
   });
 })();
+
+(function () {
+  const trigger = document.querySelector('[data-scroll-to-sentences]');
+  const container = document.getElementById('sentences');
+
+  if (!trigger || !container) return;
+
+  function scrollToSentences() {
+    const target = container.querySelector('.sentence') || container;
+    const prefersReducedMotion =
+      window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (typeof target.scrollIntoView === 'function') {
+      target.scrollIntoView({
+        behavior: prefersReducedMotion ? 'auto' : 'smooth',
+        block: 'start'
+      });
+      return;
+    }
+
+    const top = window.scrollY + target.getBoundingClientRect().top;
+    window.scrollTo({ top, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+  }
+
+  trigger.addEventListener('click', scrollToSentences);
+})();
