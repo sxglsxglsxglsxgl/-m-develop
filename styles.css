@@ -155,6 +155,16 @@ body.is-menu-closing .backdrop {
   opacity: 0.2;
 }
 
+body.has-menu-open .site-header,
+body.is-menu-closing .site-header {
+  pointer-events: none;
+}
+
+body.has-menu-open .site-menu-toggle,
+body.is-menu-closing .site-menu-toggle {
+  pointer-events: auto;
+}
+
 .site-menu {
   position: fixed;
   inset: calc(var(--overscroll-bleed) * -1) 0;
@@ -257,27 +267,33 @@ main {
 }
 
 .site-header {
-  position: fixed;
-  top: clamp(24px, 4vw, 52px);
-  left: 50%;
-  width: min(1200px, 100%);
-  transform: translateX(-50%);
-  padding: 0 clamp(20px, 6vw, 60px);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: calc(var(--viewport-unit) * 100);
+  padding: clamp(32px, 8vh, 96px) clamp(24px, 6vw, 60px);
   z-index: 32;
 }
 
 .site-header__inner {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: clamp(16px, 4vw, 48px);
+  justify-content: center;
+  gap: clamp(16px, 3vw, 36px);
+  width: min(960px, 100%);
   pointer-events: auto;
+  text-align: center;
 }
 
 .site-lockup {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
+  gap: clamp(8px, 1.6vw, 16px);
   transition: opacity 360ms ease-in-out, transform 360ms ease-in-out;
 }
 
@@ -299,13 +315,15 @@ body.is-menu-closing .site-lockup {
   appearance: none;
   cursor: pointer;
   font-family: var(--font-brand);
-  font-size: clamp(24px, 2.5vw, 44px);
+  font-size: clamp(21.6px, 5.4vw, 57.6px);
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
+  line-height: 1.05;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.995);
   text-shadow: 0 0 32px rgba(255, 255, 255, 0.28);
   text-align: center;
+  white-space: nowrap;
   transition: color 200ms ease;
 }
 
@@ -320,17 +338,21 @@ body.is-menu-closing .site-lockup {
 }
 
 .site-menu-toggle {
-  position: relative;
+  position: fixed;
+  top: clamp(24px, 4vw, 48px);
+  right: clamp(24px, 4vw, 48px);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: clamp(52px, 5vw, 68px);
   height: clamp(52px, 5vw, 68px);
+  margin: 0;
   padding: 0;
   border: none;
   background: none;
   color: rgba(255, 255, 255, 0.96);
   cursor: pointer;
+  z-index: 40;
   transition: color 340ms ease;
 }
 
@@ -408,7 +430,7 @@ body.is-menu-closing .site-menu-toggle__icon span:nth-child(3) {
   align-items: stretch;
   width: min(920px, 100%);
   margin: 0 auto;
-  padding: clamp(120px, 42vh, 320px) clamp(24px, 8vw, 140px) clamp(200px, 52vh, 420px);
+  padding: clamp(48px, 22vh, 200px) clamp(24px, 8vw, 140px) clamp(200px, 52vh, 420px);
   perspective: 1400px;
 }
 
@@ -506,49 +528,23 @@ body.is-menu-closing .site-menu-toggle__icon span:nth-child(3) {
 
 @media (max-width: 720px) {
   .site-header {
-    position: relative;
-    top: 0;
-    left: 0;
-    right: 0;
-    transform: none;
-    width: 100%;
-    max-width: none;
-    padding: clamp(32px, 12vw, 48px) clamp(20px, 10vw, 40px);
-    min-height: calc(var(--viewport-unit) * 100);
-    display: flex;
-    align-items: stretch;
-    justify-content: center;
+    padding: clamp(36px, 14vh, 80px) clamp(20px, 10vw, 40px);
   }
 
   .site-header__inner {
-    position: relative;
-    flex: 1 1 auto;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: clamp(24px, 6vw, 32px);
-  }
-
-  .site-lockup {
-    width: 100%;
-    justify-content: center;
+    gap: clamp(24px, 8vw, 40px);
   }
 
   .site-brand {
-    font-size: clamp(38px, 16vw, 64px);
+    font-size: clamp(26px, 10vw, 44px);
     letter-spacing: 0.06em;
   }
 
   .site-menu-toggle {
-    position: fixed;
     top: clamp(20px, 9vw, 36px);
     right: clamp(20px, 9vw, 36px);
     width: clamp(44px, 16vw, 56px);
     height: clamp(44px, 16vw, 56px);
-    margin: 0;
-    z-index: 40;
   }
 
   .site-menu-toggle__icon {
