@@ -536,20 +536,20 @@ body.is-menu-closing .site-menu-toggle__icon span:nth-child(3) {
   }
 
   .site-brand {
-    font-size: clamp(26px, 10vw, 44px);
-    letter-spacing: 0.06em;
+    font-size: clamp(22px, 8.4vw, 36px);
+    letter-spacing: 0.045em;
   }
 
   .site-menu-toggle {
     top: clamp(20px, 9vw, 36px);
     right: clamp(20px, 9vw, 36px);
-    width: clamp(44px, 16vw, 56px);
-    height: clamp(44px, 16vw, 56px);
+    width: clamp(40px, 14vw, 52px);
+    height: clamp(40px, 14vw, 52px);
   }
 
   .site-menu-toggle__icon {
-    width: clamp(20px, 8vw, 28px);
-    height: clamp(14px, 6vw, 20px);
+    width: clamp(18px, 7vw, 24px);
+    height: clamp(12px, 5.6vw, 18px);
   }
 
   #sentences {
