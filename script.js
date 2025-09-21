@@ -1,4 +1,172 @@
 (function () {
+  const root = document.documentElement;
+  if (!root) return;
+
+  const supportsCSS = typeof window.CSS !== 'undefined' && typeof window.CSS.supports === 'function';
+  const supportsStableUnit = supportsCSS && window.CSS.supports('height', '100svh');
+
+  if (supportsStableUnit) {
+    return;
+  }
+
+  const visual = window.visualViewport;
+  const KEYBOARD_THRESHOLD = 120;
+  const PRECISION_THRESHOLD = 0.5;
+
+  let lockedHeight = null;
+  let lastNotifiedHeight = null;
+  let lastInnerHeight = null;
+  let lastLayoutViewport = null;
+  let frameHandle = null;
+  let deferredHandle = null;
+
+  function toViewportUnit(value) {
+    const normalized = Math.max(value, 0) / 100;
+    const rounded = Math.round(normalized * 10000) / 10000;
+    return `${rounded}px`;
+  }
+
+  function measureViewport() {
+    const innerHeight = typeof window.innerHeight === 'number' ? window.innerHeight : 0;
+    const clientHeight = root && typeof root.clientHeight === 'number' ? root.clientHeight : 0;
+
+    let layoutViewport = innerHeight || clientHeight;
+    let visualHeight = null;
+
+    if (visual) {
+      visualHeight = visual.height;
+      layoutViewport = visual.height + visual.offsetTop;
+    }
+
+    let height = innerHeight;
+
+    if (layoutViewport && (!height || layoutViewport < height)) {
+      height = layoutViewport;
+    }
+
+    if (!height) {
+      height = clientHeight || visualHeight || 0;
+    }
+
+    return { height, innerHeight, layoutViewport, visualHeight };
+  }
+
+  function isKeyboardActive(innerHeight, visualHeight) {
+    if (visual && innerHeight && visualHeight) {
+      return innerHeight - visualHeight > KEYBOARD_THRESHOLD;
+    }
+
+    if (lockedHeight != null && innerHeight) {
+      return lockedHeight - innerHeight > KEYBOARD_THRESHOLD;
+    }
+
+    return false;
+  }
+
+  function applyViewportUnit() {
+    const { height, innerHeight, layoutViewport, visualHeight } = measureViewport();
+
+    if (!height) return;
+
+    const keyboardActive = isKeyboardActive(innerHeight, visualHeight);
+
+    const innerChanged =
+      innerHeight && lastInnerHeight
+        ? Math.abs(innerHeight - lastInnerHeight) > PRECISION_THRESHOLD
+        : lastInnerHeight == null;
+
+    if (!keyboardActive) {
+      const hasLayoutShrunk =
+        !visual || !lastLayoutViewport
+          ? false
+          : layoutViewport + PRECISION_THRESHOLD < lastLayoutViewport;
+
+      if (innerChanged || hasLayoutShrunk || lockedHeight == null) {
+        lockedHeight = height;
+      }
+    }
+
+    if (keyboardActive && lockedHeight == null) {
+      lockedHeight = height;
+    }
+
+    const targetHeight = lockedHeight != null ? lockedHeight : height;
+    if (!targetHeight) return;
+
+    if (
+      lastNotifiedHeight == null ||
+      Math.abs(targetHeight - lastNotifiedHeight) > PRECISION_THRESHOLD
+    ) {
+      root.style.setProperty('--viewport-unit', toViewportUnit(targetHeight));
+      lastNotifiedHeight = targetHeight;
+    }
+
+    if (innerHeight) {
+      lastInnerHeight = innerHeight;
+    }
+
+    if (layoutViewport) {
+      lastLayoutViewport = layoutViewport;
+    }
+  }
+
+  function requestUpdate() {
+    if (frameHandle != null) return;
+    frameHandle = requestAnimationFrame(() => {
+      frameHandle = null;
+      applyViewportUnit();
+    });
+  }
+
+  function scheduleDeferredUpdate() {
+    if (deferredHandle != null) {
+      clearTimeout(deferredHandle);
+    }
+
+    const lockSnapshot = lockedHeight;
+
+    deferredHandle = window.setTimeout(() => {
+      deferredHandle = null;
+
+      if (lockSnapshot != null && lockedHeight == null) {
+        lockedHeight = lockSnapshot;
+      }
+
+      applyViewportUnit();
+    }, 250);
+  }
+
+  applyViewportUnit();
+
+  window.addEventListener('resize', requestUpdate);
+
+  if (visual) {
+    visual.addEventListener('resize', requestUpdate);
+    visual.addEventListener('scroll', requestUpdate);
+  }
+
+  window.addEventListener('orientationchange', () => {
+    requestUpdate();
+    scheduleDeferredUpdate();
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      requestUpdate();
+      scheduleDeferredUpdate();
+    }
+  });
+
+  window.addEventListener('pageshow', (event) => {
+    if (event && event.persisted) {
+      lockedHeight = null;
+    }
+    requestUpdate();
+    scheduleDeferredUpdate();
+  });
+})();
+
+(function () {
   const { SENTENCES } = window.SITE_CONFIG || {};
   if (!Array.isArray(SENTENCES) || SENTENCES.length === 0) return;
 
