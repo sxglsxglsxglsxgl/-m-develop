@@ -13,15 +13,15 @@
   --font-sans: 'SF Pro Display', 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Segoe UI', 'Inter', sans-serif;
 }
 
-@supports (height: 100svh) {
-  :root {
-    --viewport-unit: 1svh;
-  }
-}
-
 @supports (height: 100dvh) {
   :root {
     --viewport-unit: 1dvh;
+  }
+}
+
+@supports (height: 100svh) {
+  :root {
+    --viewport-unit: 1svh;
   }
 }
 
