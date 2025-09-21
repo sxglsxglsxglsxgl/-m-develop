@@ -499,10 +499,11 @@
   }
 
   function animateScrollTo(top, duration) {
+    const currentX = window.scrollX || window.pageXOffset || 0;
     const start = window.scrollY || window.pageYOffset || 0;
     const distance = top - start;
     if (distance === 0 || duration <= 0) {
-      window.scrollTo(0, top);
+      window.scrollTo({ left: currentX, top });
       return;
     }
 
@@ -515,7 +516,7 @@
       const elapsed = now - startTime;
       const progress = clamp(elapsed / duration, 0, 1);
       const eased = easeInOutCubic(progress);
-      window.scrollTo(0, Math.round(start + distance * eased));
+      window.scrollTo({ left: currentX, top: Math.round(start + distance * eased) });
       if (progress < 1) {
         requestAnimationFrame(step);
       }
