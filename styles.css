@@ -19,7 +19,7 @@
   }
 }
 
-@supports (height: 100svh) {
+@supports (height: 100svh) and not (height: 100dvh) {
   :root {
     --viewport-unit: 1svh;
   }

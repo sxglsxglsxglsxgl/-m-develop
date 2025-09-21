@@ -3,7 +3,9 @@
   if (!root) return;
 
   const supportsCSS = typeof window.CSS !== 'undefined' && typeof window.CSS.supports === 'function';
-  const supportsStableUnit = supportsCSS && window.CSS.supports('height', '100svh');
+  const supportsStableUnit =
+    supportsCSS &&
+    (window.CSS.supports('height', '100dvh') || window.CSS.supports('height', '100lvh'));
 
   if (supportsStableUnit) {
     return;
