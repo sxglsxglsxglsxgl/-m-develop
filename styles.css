@@ -513,3 +513,15 @@ body.burger-animate .burger-bar { opacity: 1 !important; pointer-events: auto !i
     right: calc(var(--safe-right) + 16px);
   }
 }
+
+
+/* === Burger override (remove circle, white lines) — 2025-11-15 === */
+.burger-bar {
+  background: transparent !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.burger-bar__line {
+  background: #ffffff !important;
+}
