@@ -1,563 +1,154 @@
-(function () {
-  const root = document.documentElement;
-  if (!root) return;
+// Clean working build: intro + burger + track slides + dots + iOS-friendly sizes
+(function(){
+  const sub = document.getElementById('heroSub');
+  const burger = document.querySelector('.burger-bar');
+  const track = document.getElementById('track');
+  const dotsNav = document.getElementById('dots');
+  const sections = Array.from(track.querySelectorAll('.slide'));
+  let index = 0;
+  let isAnimating = false;
+  let startTouchY = null;
+  let wheelAccum = 0;
+  let lastNavAt = 0;
+  const WHEEL_THRESHOLD = 60;
+  const NAV_COOLDOWN = 320; // faster feel on mobile
+  const TWEEN_MS = 450;
 
-  const supportsCSS = typeof window.CSS !== 'undefined' && typeof window.CSS.supports === 'function';
-  const supportsStableUnit =
-    supportsCSS &&
-    (window.CSS.supports('height', '100dvh') || window.CSS.supports('height', '100lvh'));
-
-  if (supportsStableUnit) {
-    return;
+  function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
+  function vpHeight(){
+    return (window.visualViewport && Math.round(window.visualViewport.height)) || document.documentElement.clientHeight;
   }
 
-  const visual = window.visualViewport;
-  const KEYBOARD_THRESHOLD = 120;
-  const PRECISION_THRESHOLD = 0.5;
-
-  let lockedHeight = null;
-  let lastNotifiedHeight = null;
-  let lastInnerHeight = null;
-  let lastLayoutViewport = null;
-  let frameHandle = null;
-  let deferredHandle = null;
-
-  function toViewportUnit(value) {
-    const normalized = Math.max(value, 0) / 100;
-    const rounded = Math.round(normalized * 10000) / 10000;
-    return `${rounded}px`;
-  }
-
-  function measureViewport() {
-    const innerHeight = typeof window.innerHeight === 'number' ? window.innerHeight : 0;
-    const clientHeight = root && typeof root.clientHeight === 'number' ? root.clientHeight : 0;
-
-    let layoutViewport = innerHeight || clientHeight;
-    let visualHeight = null;
-
-    if (visual) {
-      visualHeight = visual.height;
-      layoutViewport = visual.height + visual.offsetTop;
-    }
-
-    let height = innerHeight;
-
-    if (layoutViewport && (!height || layoutViewport < height)) {
-      height = layoutViewport;
-    }
-
-    if (!height) {
-      height = clientHeight || visualHeight || 0;
-    }
-
-    return { height, innerHeight, layoutViewport, visualHeight };
-  }
-
-  function isKeyboardActive(innerHeight, visualHeight) {
-    if (visual && innerHeight && visualHeight) {
-      return innerHeight - visualHeight > KEYBOARD_THRESHOLD;
-    }
-
-    if (lockedHeight != null && innerHeight) {
-      return lockedHeight - innerHeight > KEYBOARD_THRESHOLD;
-    }
-
-    return false;
-  }
-
-  function applyViewportUnit() {
-    const { height, innerHeight, layoutViewport, visualHeight } = measureViewport();
-
-    if (!height) return;
-
-    const keyboardActive = isKeyboardActive(innerHeight, visualHeight);
-
-    const innerChanged =
-      innerHeight && lastInnerHeight
-        ? Math.abs(innerHeight - lastInnerHeight) > PRECISION_THRESHOLD
-        : lastInnerHeight == null;
-
-    if (!keyboardActive) {
-      const hasLayoutShrunk =
-        !visual || !lastLayoutViewport
-          ? false
-          : layoutViewport + PRECISION_THRESHOLD < lastLayoutViewport;
-
-      if (innerChanged || hasLayoutShrunk || lockedHeight == null) {
-        lockedHeight = height;
-      }
-    }
-
-    if (keyboardActive && lockedHeight == null) {
-      lockedHeight = height;
-    }
-
-    const targetHeight = lockedHeight != null ? lockedHeight : height;
-    if (!targetHeight) return;
-
-    if (
-      lastNotifiedHeight == null ||
-      Math.abs(targetHeight - lastNotifiedHeight) > PRECISION_THRESHOLD
-    ) {
-      root.style.setProperty('--viewport-unit', toViewportUnit(targetHeight));
-      lastNotifiedHeight = targetHeight;
-    }
-
-    if (innerHeight) {
-      lastInnerHeight = innerHeight;
-    }
-
-    if (layoutViewport) {
-      lastLayoutViewport = layoutViewport;
-    }
-  }
-
-  function requestUpdate() {
-    if (frameHandle != null) return;
-    frameHandle = requestAnimationFrame(() => {
-      frameHandle = null;
-      applyViewportUnit();
+  function layout(){
+    const h = vpHeight();
+    track.style.height = `${sections.length * h}px`;
+    sections.forEach((sec, i) => {
+      sec.style.position = 'absolute';
+      sec.style.top = `${i * h}px`;
+      sec.style.left = '0'; sec.style.right = '0';
     });
+    track.style.transform = `translate3d(0, ${-index * h}px, 0)`;
+  }
+  let resizeRAF = null;
+  function onResize(){
+    if (isAnimating) return;
+    if (resizeRAF) cancelAnimationFrame(resizeRAF);
+    resizeRAF = requestAnimationFrame(layout);
   }
 
-  function scheduleDeferredUpdate() {
-    if (deferredHandle != null) {
-      clearTimeout(deferredHandle);
-    }
+  function easeInOutCubic(t){ return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3)/2; }
+  function clampIndex(i){ return Math.max(0, Math.min(sections.length - 1, i)); }
 
-    const lockSnapshot = lockedHeight;
-
-    deferredHandle = window.setTimeout(() => {
-      deferredHandle = null;
-
-      if (lockSnapshot != null && lockedHeight == null) {
-        lockedHeight = lockSnapshot;
-      }
-
-      applyViewportUnit();
-    }, 250);
-  }
-
-  applyViewportUnit();
-
-  window.addEventListener('resize', requestUpdate);
-
-  if (visual) {
-    visual.addEventListener('resize', requestUpdate);
-    visual.addEventListener('scroll', requestUpdate);
-  }
-
-  window.addEventListener('orientationchange', () => {
-    requestUpdate();
-    scheduleDeferredUpdate();
-  });
-
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') {
-      requestUpdate();
-      scheduleDeferredUpdate();
-    }
-  });
-
-  window.addEventListener('pageshow', (event) => {
-    if (event && event.persisted) {
-      lockedHeight = null;
-    }
-    requestUpdate();
-    scheduleDeferredUpdate();
-  });
-})();
-
-(function () {
-  const { SENTENCES } = window.SITE_CONFIG || {};
-  if (!Array.isArray(SENTENCES) || SENTENCES.length === 0) return;
-
-  const container = document.getElementById('sentences');
-  if (!container) return;
-
-  const total = SENTENCES.length;
-  const nodes = SENTENCES.map((text, index) => {
-    const sentence = document.createElement('p');
-    sentence.className = 'sentence';
-    sentence.textContent = text;
-    sentence.setAttribute('role', 'listitem');
-    sentence.setAttribute('aria-setsize', String(total));
-    sentence.setAttribute('aria-posinset', String(index + 1));
-    container.appendChild(sentence);
-    return sentence;
-  });
-
-  const revealed = new Set();
-  let activeIndex = -1;
-  let ticking = false;
-
-  applyStates(activeIndex);
-
-  function applyStates(currentIndex) {
-    nodes.forEach((node, index) => {
-      const isActive = index === currentIndex;
-      const isPast = index < currentIndex;
-      const hasBeenRevealed = revealed.has(index) || isPast || isActive;
-
-      if (isPast) {
-        revealed.add(index);
-      }
-
-      node.classList.toggle('is-active', isActive);
-      node.classList.toggle('is-past', isPast);
-      node.classList.toggle('is-visible', hasBeenRevealed);
-
-      if (!hasBeenRevealed) {
-        node.classList.remove('is-past', 'is-active');
-      }
-    });
-  }
-
-  function updateActiveSentence() {
-    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-    const revealOffset = viewportHeight * 0.3;
-    const viewportCenter = viewportHeight / 2;
-    let nextIndex = -1;
-    let smallestDistance = Infinity;
-
-    nodes.forEach((node, index) => {
-      const rect = node.getBoundingClientRect();
-      const isIntersecting =
-        rect.bottom > -revealOffset && rect.top < viewportHeight + revealOffset;
-
-      if (!isIntersecting) {
-        return;
-      }
-
-      const nodeCenter = rect.top + rect.height / 2;
-      const distance = Math.abs(nodeCenter - viewportCenter);
-
-      if (distance < smallestDistance) {
-        smallestDistance = distance;
-        nextIndex = index;
-      }
-    });
-
-    if (activeIndex !== nextIndex) {
-      activeIndex = nextIndex;
-    }
-
-    applyStates(activeIndex);
-  }
-
-  function requestUpdate() {
-    if (ticking) return;
-    ticking = true;
-    requestAnimationFrame(() => {
-      ticking = false;
-      updateActiveSentence();
-    });
-  }
-
-  requestUpdate();
-
-  window.addEventListener('scroll', requestUpdate, { passive: true });
-  window.addEventListener('resize', requestUpdate);
-})();
-
-(function () {
-  const toggle = document.querySelector('[data-menu-toggle]');
-  const menu = document.getElementById('site-menu');
-  if (!toggle || !menu) return;
-
-  const menuContainer = menu.querySelector('.site-menu__container');
-  const closeTargets = menu.querySelectorAll('[data-menu-close]');
-  const menuLinks = menu.querySelectorAll('[data-menu-link]');
-  const initialFocus = menu.querySelector('[data-menu-focus]');
-
-  const FOCUSABLE_SELECTORS = [
-    'a[href]',
-    'button:not([disabled])',
-    'input:not([type="hidden"]):not([disabled])',
-    'textarea:not([disabled])',
-    'select:not([disabled])',
-    '[tabindex]:not([tabindex="-1"])'
-  ];
-
-  let lastFocusedElement = null;
-  let hideTimeoutId = null;
-  let pendingTransitionHandler = null;
-
-  function getFocusableElements() {
-    return Array.from(menu.querySelectorAll(FOCUSABLE_SELECTORS.join(','))).filter((element) => {
-      if (element.hasAttribute('disabled')) return false;
-      if (element.getAttribute('aria-hidden') === 'true') return false;
-      if (element.hasAttribute('hidden')) return false;
-      const rect = element.getBoundingClientRect();
-      return rect.width > 0 && rect.height > 0;
-    });
-  }
-
-  function setExpandedState(isExpanded) {
-    toggle.setAttribute('aria-expanded', String(isExpanded));
-    toggle.setAttribute('aria-label', isExpanded ? 'Close menu' : 'Open menu');
-  }
-
-  function trapFocus(event) {
-    if (event.key !== 'Tab') return;
-
-    const focusable = getFocusableElements();
-    if (
-      document.body.classList.contains('has-menu-open') &&
-      toggle instanceof HTMLElement &&
-      !toggle.hasAttribute('disabled')
-    ) {
-      const rect = toggle.getBoundingClientRect();
-      if (rect.width > 0 && rect.height > 0) {
-        focusable.push(toggle);
-      }
-    }
-    if (focusable.length === 0) {
-      event.preventDefault();
-      return;
-    }
-
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-
-    if (event.shiftKey) {
-      if (document.activeElement === first || !menu.contains(document.activeElement)) {
-        event.preventDefault();
-        last.focus();
-      }
-    } else if (document.activeElement === last) {
-      event.preventDefault();
-      first.focus();
-    }
-  }
-
-  function handleKeydown(event) {
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      closeMenu();
-      return;
-    }
-
-    trapFocus(event);
-  }
-
-  function focusInitialElement() {
-    const candidates = [];
-    if (initialFocus instanceof HTMLElement) {
-      candidates.push(initialFocus);
-    }
-    if (menuContainer instanceof HTMLElement) {
-      candidates.push(menuContainer);
-    }
-    candidates.push(...getFocusableElements());
-
-    const target = candidates.find((element) => typeof element.focus === 'function');
-    if (!target) return;
-
-    requestAnimationFrame(() => {
-      target.focus();
-    });
-  }
-
-  function openMenu() {
-    if (document.body.classList.contains('has-menu-open')) return;
-    if (document.body.classList.contains('is-menu-closing')) return;
-
-    lastFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-
-    if (hideTimeoutId !== null) {
-      window.clearTimeout(hideTimeoutId);
-      hideTimeoutId = null;
-    }
-
-    if (pendingTransitionHandler) {
-      menu.removeEventListener('transitionend', pendingTransitionHandler);
-      pendingTransitionHandler = null;
-    }
-
-    document.body.classList.remove('is-menu-closing');
-
-    menu.hidden = false;
-    menu.removeAttribute('hidden');
-    menu.setAttribute('aria-hidden', 'false');
-
-    // Ensure the opening opacity transition runs after the element becomes visible.
-    menu.classList.remove('is-open');
-    void menu.offsetWidth;
-
-    menu.classList.add('is-open');
-    document.body.classList.add('has-menu-open');
-
-    setExpandedState(true);
-    focusInitialElement();
-
-    document.addEventListener('keydown', handleKeydown);
-  }
-
-  function closeMenu({ focusToggle = true } = {}) {
-    if (!document.body.classList.contains('has-menu-open')) return;
-    if (document.body.classList.contains('is-menu-closing')) return;
-
-    document.body.classList.add('is-menu-closing');
-    menu.classList.remove('is-open');
-    menu.setAttribute('aria-hidden', 'true');
-    setExpandedState(false);
-    document.removeEventListener('keydown', handleKeydown);
-
-    const finalizeHide = () => {
-      menu.setAttribute('hidden', '');
-      menu.hidden = true;
-      document.body.classList.remove('is-menu-closing');
-      document.body.classList.remove('has-menu-open');
-    };
-
-    const prefersReducedMotion =
-      window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    if (prefersReducedMotion) {
-      finalizeHide();
-      hideTimeoutId = null;
-      pendingTransitionHandler = null;
-    } else {
-      const handleTransitionEnd = (event) => {
-        if (event.target !== menu || event.propertyName !== 'opacity') return;
-        menu.removeEventListener('transitionend', handleTransitionEnd);
-        pendingTransitionHandler = null;
-        if (document.body.classList.contains('is-menu-closing')) {
-          finalizeHide();
+  function tweenTo(targetIndex, duration=TWEEN_MS){
+    if (isAnimating) return Promise.resolve();
+    isAnimating = true;
+    const start = performance.now();
+    const h = vpHeight();
+    const startY = -index * h;
+    const endY = -targetIndex * h;
+    return new Promise(resolve => {
+      function frame(now){
+        const p = Math.min(1, (now - start) / duration);
+        const y = startY + (endY - startY) * easeInOutCubic(p);
+        track.style.transform = `translate3d(0, ${y}px, 0)`;
+        if (p < 1) requestAnimationFrame(frame);
+        else {
+          index = targetIndex;
+          isAnimating = false;
+          updateDots();
+          const current = sections[index];
+          if (current && current.classList.contains('reveal')) current.classList.add('is-visible');
+          resolve();
         }
-        hideTimeoutId = null;
-      };
-
-      menu.addEventListener('transitionend', handleTransitionEnd);
-      pendingTransitionHandler = handleTransitionEnd;
-      hideTimeoutId = window.setTimeout(() => {
-        if (pendingTransitionHandler) {
-          menu.removeEventListener('transitionend', pendingTransitionHandler);
-          pendingTransitionHandler = null;
-        }
-        if (document.body.classList.contains('is-menu-closing')) {
-          finalizeHide();
-        }
-        hideTimeoutId = null;
-      }, 500);
-    }
-
-    if (focusToggle) {
-      const focusTarget =
-        (lastFocusedElement && document.body.contains(lastFocusedElement)) ? lastFocusedElement : toggle;
-
-      if (focusTarget && typeof focusTarget.focus === 'function') {
-        requestAnimationFrame(() => {
-          focusTarget.focus();
-        });
       }
-    }
+      requestAnimationFrame(frame);
+    });
   }
 
-  toggle.addEventListener('click', () => {
-    if (document.body.classList.contains('has-menu-open')) {
-      closeMenu();
-    } else {
-      openMenu();
+  function go(delta){
+    const now = performance.now();
+    if (isAnimating || now - lastNavAt < NAV_COOLDOWN) return;
+    const next = clampIndex(index + delta);
+    if (next !== index){ lastNavAt = now; tweenTo(next).then(()=>{ lastNavAt = performance.now(); }); }
+  }
+
+  function onWheel(e){
+    const now = performance.now();
+    if (isAnimating || now - lastNavAt < NAV_COOLDOWN) return;
+    wheelAccum += e.deltaY;
+    if (Math.abs(wheelAccum) >= WHEEL_THRESHOLD){
+      const dir = wheelAccum > 0 ? +1 : -1;
+      wheelAccum = 0;
+      go(dir);
     }
-  });
+  }
+  function onTouchStart(e){ if (e.touches && e.touches.length) startTouchY = e.touches[0].clientY; }
+  function onTouchMove(e){
+    if (startTouchY == null || isAnimating) return;
+    const dy = startTouchY - e.touches[0].clientY;
+    if (Math.abs(dy) > 5) e.preventDefault(); // block browser gestures
+    if (Math.abs(dy) > 30){ e.preventDefault(); startTouchY = null; go(dy > 0 ? +1 : -1); }
+  }
+  function onTouchEnd(){ startTouchY = null; }
+  function onKeyDown(e){
+    const code = e.code;
+    if (code === 'ArrowDown' || code === 'PageDown' || code === 'Space') { e.preventDefault(); go(+1); }
+    else if (code === 'ArrowUp' || code === 'PageUp') { e.preventDefault(); go(-1); }
+    else if (code === 'Home') { e.preventDefault(); tweenTo(0); }
+    else if (code === 'End') { e.preventDefault(); tweenTo(sections.length - 1); }
+  }
 
-  closeTargets.forEach((element) => {
-    element.addEventListener('click', () => {
-      closeMenu();
+  function buildDots(){
+    dotsNav.innerHTML = '';
+    sections.forEach((_, i) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.setAttribute('aria-label', `Go to slide ${i+1}`);
+      btn.addEventListener('click', () => { if (!isAnimating) tweenTo(i); });
+      btn.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); btn.click(); } });
+      dotsNav.appendChild(btn);
     });
-  });
+    updateDots();
+  }
+  function updateDots(){
+    const btns = dotsNav.querySelectorAll('button');
+    btns.forEach((b, i) => b.setAttribute('aria-current', i === index ? 'true' : 'false'));
+  }
 
-  menuLinks.forEach((link) => {
-    link.addEventListener('click', () => {
-      closeMenu({ focusToggle: false });
-    });
-  });
+  function armBurger(){
+    if (!burger) return;
+    burger.setAttribute('data-active', '1');
+    burger.removeAttribute('tabindex');
+    document.body.classList.add('burger-animate');
+  }
+  function unlockScroll(){ document.body.classList.remove('is-locked'); }
+
+  async function run(){
+    layout();
+    // buildDots() delayed to after intro;
+    sections[0].classList.add('is-visible');
+    await sleep(200);
+    sub.textContent = 'BORN IN SAINT PETERSBURG';
+    // prepare robust animation start
+    function afterIntro(){ try{ buildDots(); }catch(e){} try{ armBurger(); }catch(e){} try{ unlockScroll(); }catch(e){} }
+    // reset in case class was present, force reflow, attach listener, then start
+    sub.classList.remove('is-blur-intro');
+    void sub.offsetWidth;
+    function afterIntro(){ try{ buildDots(); }catch(e){} try{ armBurger(); }catch(e){} try{ unlockScroll(); }catch(e){} }
+    sub.addEventListener('animationend', afterIntro, { once: true });
+    requestAnimationFrame(() => { sub.classList.add('is-blur-intro'); });
+    // armBurger() delayed to after intro;
+    // unlockScroll() delayed to after intro;
+
+    window.addEventListener('resize', onResize);
+    window.addEventListener('wheel', onWheel, { passive: true });
+    window.addEventListener('touchstart', onTouchStart, { passive: false });
+    window.addEventListener('touchmove', onTouchMove, { passive: false });
+    window.addEventListener('touchend', onTouchEnd, { passive: false });
+    window.addEventListener('keydown', onKeyDown);
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
+  else run();
 })();
 
-(function () {
-  const trigger = document.querySelector('[data-scroll-to-sentences]');
-  const container = document.getElementById('sentences');
-
-  if (!trigger || !container) return;
-
-  function getAbsoluteOffsetTop(element) {
-    let current = element;
-    let offset = 0;
-
-    while (current) {
-      offset += current.offsetTop || 0;
-      current = current.offsetParent;
-    }
-
-    return offset;
-  }
-
-  function clamp(value, min, max) {
-    return Math.min(Math.max(value, min), max);
-  }
-
-  function animateScrollTo(top, duration) {
-    const currentX = window.scrollX || window.pageXOffset || 0;
-    const start = window.scrollY || window.pageYOffset || 0;
-    const distance = top - start;
-    if (distance === 0 || duration <= 0) {
-      window.scrollTo({ left: currentX, top });
-      return;
-    }
-
-    const startTime = performance.now();
-
-    const easeInOutCubic = (t) =>
-      t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-
-    function step(now) {
-      const elapsed = now - startTime;
-      const progress = clamp(elapsed / duration, 0, 1);
-      const eased = easeInOutCubic(progress);
-      window.scrollTo({ left: currentX, top: Math.round(start + distance * eased) });
-      if (progress < 1) {
-        requestAnimationFrame(step);
-      }
-    }
-
-    requestAnimationFrame(step);
-  }
-
-  function scrollToSentences() {
-    const target = container.querySelector('.sentence') || container;
-    const prefersReducedMotion =
-      window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-    const targetHeight = target.offsetHeight || target.getBoundingClientRect().height || 0;
-    const documentHeight = Math.max(
-      document.body.scrollHeight,
-      document.documentElement.scrollHeight,
-      document.body.offsetHeight,
-      document.documentElement.offsetHeight,
-      document.body.clientHeight,
-      document.documentElement.clientHeight
-    );
-
-    const maxScroll = Math.max(0, documentHeight - viewportHeight);
-
-    let destination = getAbsoluteOffsetTop(target);
-
-    if (targetHeight < viewportHeight) {
-      destination -= (viewportHeight - targetHeight) / 2;
-    }
-
-    destination = clamp(destination, 0, maxScroll);
-
-    if (prefersReducedMotion) {
-      window.scrollTo({ top: destination, behavior: 'auto' });
-      return;
-    }
-
-    animateScrollTo(destination, 700);
-  }
-
-  trigger.addEventListener('click', scrollToSentences);
-})();
