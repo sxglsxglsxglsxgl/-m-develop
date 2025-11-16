@@ -515,13 +515,46 @@ body.burger-animate .burger-bar { opacity: 1 !important; pointer-events: auto !i
 }
 
 
-/* === Burger override (remove circle, white lines) — 2025-11-15 === */
+/* === Refined circle icon — smaller & thicker (2025-11-15) === */
 .burger-bar {
+  width: 30px !important;
+  height: 30px !important;
+  border-radius: 999px !important;
+  border: 2.5px solid rgba(255, 255, 255, 0.95) !important;
   background: transparent !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.55) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition:
+    border-color 200ms ease,
+    box-shadow 200ms ease,
+    transform 200ms ease;
 }
 
+/* Hide lines */
 .burger-bar__line {
-  background: #ffffff !important;
+  display: none !important;
+}
+
+/* Hover */
+.burger-bar:hover,
+.burger-bar:focus-visible {
+  border-color: rgba(255,255,255,1) !important;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.8),
+    0 0 12px rgba(0,0,0,0.95) !important;
+}
+
+/* Open state */
+body.has-menu-open .burger-bar {
+  animation: burgerCirclePulseMini 1200ms ease-in-out infinite alternate;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,1),
+    0 0 18px rgba(0,0,0,1) !important;
+}
+
+@keyframes burgerCirclePulseMini {
+  from { transform: scale(1.0); }
+  to   { transform: scale(1.05); }
 }
