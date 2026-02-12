@@ -5,7 +5,8 @@
   const burger = document.querySelector('.burger-bar');
   const track = document.getElementById('track');
   const dotsNav = document.getElementById('dots');
-  if (!track || !dotsNav) return;
+  const scrollCue = document.getElementById('scrollCue');
+  if (!track) return;
 
   const sections = Array.from(track.querySelectorAll('.slide'));
   const MOBILE_QUERY = '(max-width: 1024px) and (pointer: coarse)';
@@ -20,6 +21,7 @@
   let introApplied = false;
   let mobileScrollRAF = null;
   let sectionObserver = null;
+  let cueDismissed = false;
 
   const WHEEL_THRESHOLD = 60;
   const NAV_COOLDOWN = 320;
@@ -85,6 +87,12 @@
     }
   }
 
+  function hideScrollCue() {
+    if (!scrollCue || cueDismissed) return;
+    cueDismissed = true;
+    scrollCue.classList.add('is-hidden');
+  }
+
   function clearMobileFrameFx() {
     sections.forEach((section) => {
       const frame = section.querySelector('.frame');
@@ -117,6 +125,7 @@
   }
 
   function updateDots() {
+    if (!dotsNav) return;
     const buttons = dotsNav.querySelectorAll('button');
     buttons.forEach((button, idx) => {
       button.setAttribute('aria-current', idx === index ? 'true' : 'false');
@@ -129,6 +138,7 @@
     index = clamped;
     revealSection(index);
     updateDots();
+    if (index > 0) hideScrollCue();
   }
 
   function layoutDesktop() {
@@ -212,6 +222,7 @@
 
   function onMobileScroll() {
     if (mode !== 'mobile') return;
+    if (window.scrollY > 20) hideScrollCue();
     if (mobileScrollRAF) return;
 
     mobileScrollRAF = requestAnimationFrame(() => {
@@ -319,6 +330,7 @@
 
   function onWheel(event) {
     if (mode !== 'desktop') return;
+    if (Math.abs(event.deltaY) > 1) hideScrollCue();
     const now = performance.now();
     if (isAnimating || now - lastNavAt < NAV_COOLDOWN) return;
 
@@ -342,6 +354,7 @@
     if (startTouchY == null || isAnimating) return;
 
     const dy = startTouchY - event.touches[0].clientY;
+    if (Math.abs(dy) > 8) hideScrollCue();
     if (Math.abs(dy) <= 30) return;
 
     event.preventDefault();
@@ -358,6 +371,7 @@
     if (mode === 'desktop') {
       if (code === 'ArrowDown' || code === 'PageDown' || code === 'Space') {
         event.preventDefault();
+        hideScrollCue();
         go(+1);
       } else if (code === 'ArrowUp' || code === 'PageUp') {
         event.preventDefault();
@@ -367,6 +381,7 @@
         tweenTo(0);
       } else if (code === 'End') {
         event.preventDefault();
+        hideScrollCue();
         tweenTo(sections.length - 1);
       }
       return;
@@ -378,12 +393,14 @@
         sections[0]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       } else if (code === 'End') {
         event.preventDefault();
+        hideScrollCue();
         sections[sections.length - 1]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }
   }
 
   function buildDots() {
+    if (!dotsNav) return;
     dotsNav.innerHTML = '';
     sections.forEach((section, idx) => {
       const button = document.createElement('button');
