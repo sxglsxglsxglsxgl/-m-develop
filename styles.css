@@ -628,7 +628,7 @@ body.has-menu-open .burger-bar {
 
   body.is-native-mobile .slides {
     height: auto;
-    min-height: calc(100svh + var(--safe-top) + var(--safe-bottom));
+    min-height: 100svh;
     overflow: visible;
     overflow-anchor: none;
   }
@@ -649,21 +649,25 @@ body.has-menu-open .burger-bar {
     right: auto !important;
     height: auto;
     min-height: 100svh;
-    scroll-margin-top: var(--safe-top);
+    scroll-margin-top: 0;
   }
 
   body.is-native-mobile .slide:not(.hero) {
-    padding-top: var(--safe-top);
-    padding-bottom: var(--safe-bottom);
+    padding-top: 0;
+    padding-bottom: 0;
   }
 
   body.is-native-mobile .hero {
     min-height: 100svh;
+    padding-top: 24px;
+    padding-right: 24px;
+    padding-bottom: 24px;
+    padding-left: 24px;
   }
 
   body.is-native-mobile .frame {
-    padding-left: max(16px, var(--safe-left));
-    padding-right: max(16px, var(--safe-right));
+    padding-left: clamp(16px, 5vw, 32px);
+    padding-right: clamp(16px, 5vw, 32px);
     will-change: opacity, transform;
     transition: opacity 140ms linear, transform 140ms linear;
   }

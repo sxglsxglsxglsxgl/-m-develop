@@ -31,6 +31,7 @@
 
   let lastViewportW = window.innerWidth;
   let lastViewportH = window.innerHeight;
+  let mobileViewportH = 0;
 
   function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -44,8 +45,13 @@
     );
   }
 
+  function activeViewportHeight() {
+    if (mode === 'mobile' && mobileViewportH > 0) return mobileViewportH;
+    return vpHeight();
+  }
+
   function setViewportVar() {
-    document.documentElement.style.setProperty('--app-vh', `${vpHeight()}px`);
+    document.documentElement.style.setProperty('--app-vh', `${activeViewportHeight()}px`);
   }
 
   function isMobileMode() {
@@ -65,7 +71,7 @@
   }
 
   function nearestMobileIndex() {
-    const probe = window.scrollY + vpHeight() * 0.35;
+    const probe = window.scrollY + activeViewportHeight() * 0.35;
     let best = 0;
     let bestDist = Number.POSITIVE_INFINITY;
 
@@ -104,7 +110,7 @@
 
   function updateMobileFrameFx() {
     if (mode !== 'mobile') return;
-    const height = vpHeight();
+    const height = activeViewportHeight();
     const mid = height * 0.5;
     const falloff = height * 0.62;
 
@@ -263,6 +269,8 @@
     mode = 'mobile';
     isAnimating = false;
     document.body.classList.add('is-native-mobile');
+    mobileViewportH = vpHeight();
+    setViewportVar();
 
     track.style.height = '';
     track.style.transform = '';
@@ -285,6 +293,7 @@
     document.body.classList.remove('is-native-mobile');
     cleanupMobileObservers();
     clearMobileFrameFx();
+    mobileViewportH = 0;
 
     index = clampIndex(nearestMobileIndex());
     window.scrollTo({ top: 0, behavior: 'auto' });
@@ -318,6 +327,9 @@
 
       lastViewportW = nextW;
       lastViewportH = nextH;
+      if (mode === 'mobile') {
+        mobileViewportH = vpHeight();
+      }
       setViewportVar();
       applyMode(false);
       if (mode === 'desktop' && !isAnimating) {
