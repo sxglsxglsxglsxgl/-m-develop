@@ -759,3 +759,35 @@ body.has-menu-open .burger-bar__line:nth-child(3) {
   top: 17px !important;
   transform: rotate(-45deg) !important;
 }
+
+/* === Hero center + burger frame cleanup (2026-02-12) === */
+.hero {
+  place-items: center !important;
+}
+
+.hero .frame {
+  align-self: center !important;
+}
+
+.hero .hero__center {
+  margin-top: 0 !important;
+}
+
+@media (max-width: 768px) {
+  .hero {
+    align-items: center !important;
+  }
+}
+
+.burger-bar,
+.burger-bar:hover,
+.burger-bar:focus,
+.burger-bar:focus-visible,
+.burger-bar:active {
+  outline: none !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-appearance: none;
+  appearance: none;
+}
