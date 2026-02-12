@@ -791,3 +791,15 @@ body.has-menu-open .burger-bar__line:nth-child(3) {
   -webkit-appearance: none;
   appearance: none;
 }
+
+/* Force cleanup for opened-menu state (overrides legacy open shadows) */
+body.has-menu-open .burger-bar,
+body.has-menu-open .burger-bar:hover,
+body.has-menu-open .burger-bar:focus,
+body.has-menu-open .burger-bar:focus-visible,
+body.has-menu-open .burger-bar:active {
+  outline: none !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  background: transparent !important;
+}
