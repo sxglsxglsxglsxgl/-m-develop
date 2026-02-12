@@ -673,3 +673,85 @@ body.has-menu-open .burger-bar {
     transform: none;
   }
 }
+
+/* === Hero top + burger redesign (2026-02-12) === */
+.hero {
+  place-items: start center;
+}
+
+.hero .frame {
+  align-self: start;
+}
+
+/* Move hero block to the top on phones as well */
+@media (max-width: 768px) {
+  .hero {
+    align-items: start !important;
+  }
+}
+
+/* Override old circle icon and restore stylish burger lines */
+.burger-bar {
+  top: calc(var(--safe-top) + 12px) !important;
+  right: calc(var(--safe-right) + 14px) !important;
+  bottom: auto !important;
+  width: 44px !important;
+  height: 36px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  display: block !important;
+  animation: none !important;
+}
+
+.burger-bar__line {
+  display: block !important;
+  position: absolute !important;
+  left: 7px !important;
+  right: 7px !important;
+  width: auto !important;
+  margin-left: 0 !important;
+  height: 2px !important;
+  border-radius: 999px !important;
+  background: #f4f4f4 !important;
+  opacity: 1 !important;
+  transform-origin: 50% 50% !important;
+  transition: transform 280ms cubic-bezier(.2,.8,.2,1), opacity 220ms ease, top 280ms ease !important;
+}
+
+.burger-bar__line:nth-child(1) {
+  top: 9px !important;
+  transform: none !important;
+}
+
+.burger-bar__line:nth-child(2) {
+  top: 17px !important;
+  margin-top: 0 !important;
+  transform: none !important;
+}
+
+.burger-bar__line:nth-child(3) {
+  top: 25px !important;
+  bottom: auto !important;
+  transform: none !important;
+}
+
+body.has-menu-open .burger-bar {
+  animation: none !important;
+}
+
+body.has-menu-open .burger-bar__line:nth-child(1) {
+  top: 17px !important;
+  transform: rotate(45deg) !important;
+}
+
+body.has-menu-open .burger-bar__line:nth-child(2) {
+  opacity: 0 !important;
+  transform: scaleX(0.7) !important;
+}
+
+body.has-menu-open .burger-bar__line:nth-child(3) {
+  top: 17px !important;
+  transform: rotate(-45deg) !important;
+}
