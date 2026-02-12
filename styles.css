@@ -683,6 +683,10 @@ body.has-menu-open .burger-bar {
   align-self: start;
 }
 
+.hero .hero__center {
+  margin-top: clamp(26px, 7vh, 84px);
+}
+
 /* Move hero block to the top on phones as well */
 @media (max-width: 768px) {
   .hero {
