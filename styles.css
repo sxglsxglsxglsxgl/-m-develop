@@ -674,8 +674,40 @@ body.has-menu-open .burger-bar {
   body.is-native-mobile .frame {
     padding-left: clamp(16px, 5vw, 32px);
     padding-right: clamp(16px, 5vw, 32px);
-    will-change: opacity, transform;
-    transition: opacity 140ms linear, transform 140ms linear;
+    will-change: auto;
+    transition: none;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  body.is-native-mobile .slide {
+    isolation: isolate;
+  }
+
+  body.is-native-mobile .slide .frame {
+    position: relative;
+    z-index: 1;
+  }
+
+  body.is-native-mobile .slide::before,
+  body.is-native-mobile .slide::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: clamp(28px, 10vh, 88px);
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  body.is-native-mobile .slide::before {
+    top: 0;
+    background: linear-gradient(to bottom, var(--bg) 0%, rgba(0, 0, 0, 0) 100%);
+  }
+
+  body.is-native-mobile .slide::after {
+    bottom: 0;
+    background: linear-gradient(to top, var(--bg) 0%, rgba(0, 0, 0, 0) 100%);
   }
 
   body.is-native-mobile .slide.reveal {
