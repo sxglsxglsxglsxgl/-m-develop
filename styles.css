@@ -37,7 +37,11 @@ body.is-native-mobile {
   overscroll-behavior-y: auto;
   -webkit-overflow-scrolling: touch;
 }
-body.is-locked, body.has-menu-open, body.is-menu-closing { overflow: hidden; }
+body.is-locked,
+body.has-menu-open:not(.is-native-mobile),
+body.is-menu-closing:not(.is-native-mobile) {
+  overflow: hidden;
+}
 
 /* Hero */
 .hero {
@@ -139,7 +143,9 @@ body.burger-animate .burger-bar__line:nth-child(3){ animation: lineGrow 520ms 30
 
 /* Menu overlay */
 .site-menu { position: fixed; inset: 0; display: grid; place-items: center; background: var(--bg); z-index: 9998;
-  opacity: 0; pointer-events: none; transition: opacity var(--transition-med) ease-in-out; }
+  opacity: 0; pointer-events: none; transition: opacity var(--transition-med) ease-in-out;
+  overscroll-behavior: contain;
+}
 body.has-menu-open .site-menu, .site-menu.is-open { opacity: 1; pointer-events: auto; }
 body.is-menu-closing .site-menu { opacity: 0; pointer-events: none; }
 .site-menu__backdrop { position: absolute; inset: 0; }

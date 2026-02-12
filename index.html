@@ -147,6 +147,29 @@
         const CLOSE_ANIM_MS = 380;
         if (!menu || !toggleBtn) return;
         let lastFocusedEl = null;
+        let gesturesLocked = false;
+
+        function shouldLockGestures() {
+          return document.body.classList.contains(OPEN_CLASS) || document.body.classList.contains(CLOSING_CLASS);
+        }
+
+        function preventScrollWhileMenuOpen(e) {
+          if (!shouldLockGestures()) return;
+          e.preventDefault();
+        }
+
+        function setGestureLock(locked) {
+          if (gesturesLocked === locked) return;
+          gesturesLocked = locked;
+          const opts = { passive: false };
+          if (locked) {
+            window.addEventListener('touchmove', preventScrollWhileMenuOpen, opts);
+            window.addEventListener('wheel', preventScrollWhileMenuOpen, opts);
+          } else {
+            window.removeEventListener('touchmove', preventScrollWhileMenuOpen, opts);
+            window.removeEventListener('wheel', preventScrollWhileMenuOpen, opts);
+          }
+        }
 
         function setAria(isOpen) {
           toggleBtn.setAttribute('aria-expanded', String(isOpen));
@@ -160,15 +183,18 @@
           document.body.classList.add(OPEN_CLASS);
           menu.classList.add('is-open');
           setAria(true);
+          setGestureLock(true);
           (focusHost || menu).focus({ preventScroll: true });
         }
         function closeMenu() {
           document.body.classList.add(CLOSING_CLASS);
           document.body.classList.remove(OPEN_CLASS);
           setAria(false);
+          setGestureLock(true);
           window.setTimeout(() => {
             document.body.classList.remove(CLOSING_CLASS);
             menu.classList.remove('is-open');
+            setGestureLock(false);
             if (lastFocusedEl && lastFocusedEl.focus) lastFocusedEl.focus({ preventScroll: true });
           }, CLOSE_ANIM_MS);
         }
