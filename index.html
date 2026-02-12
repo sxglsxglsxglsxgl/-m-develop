@@ -12,35 +12,6 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body class="is-locked theme-dark">
-    <!-- Burger (fixed full width, lines animate) -->
-    <button
-      class="burger-bar"
-      type="button"
-      data-menu-toggle
-      aria-expanded="false"
-      aria-controls="site-menu"
-      aria-label="Open menu"
-      data-active="0"
-      tabindex="-1"
-    >
-      <span class="burger-bar__line"></span>
-      <span class="burger-bar__line"></span>
-      <span class="burger-bar__line"></span>
-    </button>
-
-    <!-- Full black menu overlay -->
-    <div id="site-menu" class="site-menu" role="dialog" aria-modal="true" aria-hidden="true" hidden>
-      <div class="site-menu__backdrop" data-menu-close></div>
-      <div class="site-menu__container" role="document" tabindex="-1" data-menu-focus>
-        <ul class="site-menu__list" role="list">
-          <li class="site-menu__item"><a href="#about" class="site-menu__link" data-menu-link>ABOUT</a></li>
-          <li class="site-menu__item"><a href="#projects" class="site-menu__link" data-menu-link>PROJECTS</a></li>
-          <li class="site-menu__item"><a href="#menu-coffee" class="site-menu__link" data-menu-link>COFFEE</a></li>
-          <li class="site-menu__item"><a href="#contacts" class="site-menu__link" data-menu-link>CONTACT</a></li>
-        </ul>
-      </div>
-    </div>
-
     <!-- Slides (track-based) -->
     <main class="slides" id="slides" aria-label="Slides">
       <div class="slides__track" id="track">
@@ -133,58 +104,6 @@
         </section>
       </div>
     </main>
-
-    <!-- Menu controller (minimal, reliable) -->
-    <script>
-      (function () {
-        const menu = document.getElementById('site-menu');
-        const toggleBtn = document.querySelector('[data-menu-toggle]');
-        const backdrop = menu?.querySelector('[data-menu-close]');
-        const focusHost = menu?.querySelector('[data-menu-focus]');
-        const links = [...(menu?.querySelectorAll('[data-menu-link]') || [])];
-        const OPEN_CLASS = 'has-menu-open';
-        const CLOSING_CLASS = 'is-menu-closing';
-        const CLOSE_ANIM_MS = 380;
-        if (!menu || !toggleBtn) return;
-        let lastFocusedEl = null;
-
-        function setAria(isOpen) {
-          toggleBtn.setAttribute('aria-expanded', String(isOpen));
-          menu.setAttribute('aria-hidden', String(!isOpen));
-          toggleBtn.setAttribute('aria-label', isOpen ? 'Close menu' : 'Open menu');
-          if (!isOpen) menu.setAttribute('hidden', '');
-          else menu.removeAttribute('hidden');
-        }
-        function openMenu() {
-          lastFocusedEl = document.activeElement;
-          document.body.classList.add(OPEN_CLASS);
-          menu.classList.add('is-open');
-          setAria(true);
-          (focusHost || menu).focus({ preventScroll: true });
-        }
-        function closeMenu() {
-          document.body.classList.add(CLOSING_CLASS);
-          document.body.classList.remove(OPEN_CLASS);
-          setAria(false);
-          window.setTimeout(() => {
-            document.body.classList.remove(CLOSING_CLASS);
-            menu.classList.remove('is-open');
-            if (lastFocusedEl && lastFocusedEl.focus) lastFocusedEl.focus({ preventScroll: true });
-          }, CLOSE_ANIM_MS);
-        }
-
-        document.addEventListener('click', (e) => {
-          const t = e.target;
-          if (!(t instanceof Element)) return;
-          if (t.closest('[data-menu-toggle]')) {
-            const isOpen = document.body.classList.contains(OPEN_CLASS);
-            isOpen ? closeMenu() : openMenu();
-          }
-        });
-        backdrop?.addEventListener('click', closeMenu);
-        links.forEach((a) => a.addEventListener('click', closeMenu));
-      })();
-    </script>
 
     <script src="script.js"></script>
   </body>

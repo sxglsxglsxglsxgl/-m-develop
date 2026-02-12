@@ -2,7 +2,6 @@
 // Mobile (coarse pointer): native page scroll so browser bars can collapse naturally.
 (function () {
   const sub = document.getElementById('heroSub');
-  const burger = document.querySelector('.burger-bar');
   const track = document.getElementById('track');
   const dotsNav = document.getElementById('dots');
   const scrollCue = document.getElementById('scrollCue');
@@ -109,8 +108,25 @@
   }
 
   function updateMobileFrameFx() {
-    // Fade is handled by CSS edge overlays in mobile mode.
-    // Keep this function as a no-op to avoid viewport-related jump artifacts.
+    if (mode !== 'mobile') return;
+    const height = activeViewportHeight();
+    const mid = height * 0.5;
+    const falloff = height * 0.62;
+
+    sections.forEach((section) => {
+      const frame = section.querySelector('.frame');
+      if (!frame) return;
+
+      const rect = section.getBoundingClientRect();
+      const center = rect.top + rect.height * 0.5;
+      const dist = center - mid;
+      const ratio = Math.min(1, Math.abs(dist) / falloff);
+      const opacity = 1 - ratio;
+      const translateY = dist < 0 ? -24 * ratio : 24 * ratio;
+
+      frame.style.opacity = `${opacity.toFixed(3)}`;
+      frame.style.transform = `translate3d(0, ${translateY.toFixed(2)}px, 0)`;
+    });
   }
 
   function updateDots() {
@@ -420,9 +436,6 @@
   }
 
   function armBurger() {
-    if (!burger) return;
-    burger.setAttribute('data-active', '1');
-    burger.removeAttribute('tabindex');
     document.body.classList.add('burger-animate');
   }
 
