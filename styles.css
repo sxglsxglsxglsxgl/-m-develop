@@ -680,36 +680,6 @@ body.has-menu-open .burger-bar {
     transform: none !important;
   }
 
-  body.is-native-mobile .slide {
-    isolation: isolate;
-  }
-
-  body.is-native-mobile .slide .frame {
-    position: relative;
-    z-index: 1;
-  }
-
-  body.is-native-mobile .slide::before,
-  body.is-native-mobile .slide::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: clamp(28px, 10vh, 88px);
-    pointer-events: none;
-    z-index: 2;
-  }
-
-  body.is-native-mobile .slide::before {
-    top: 0;
-    background: linear-gradient(to bottom, var(--bg) 0%, rgba(0, 0, 0, 0) 100%);
-  }
-
-  body.is-native-mobile .slide::after {
-    bottom: 0;
-    background: linear-gradient(to top, var(--bg) 0%, rgba(0, 0, 0, 0) 100%);
-  }
-
   body.is-native-mobile .slide.reveal {
     opacity: 1;
     transform: none;
