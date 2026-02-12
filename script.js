@@ -27,7 +27,7 @@
   const NAV_COOLDOWN = 320;
   const TWEEN_MS = 450;
   const INTRO_FALLBACK_MS = 1800;
-  const MOBILE_BAR_RESIZE_EPS = 120;
+  const MOBILE_WIDTH_RECALC_EPS = 72;
 
   let lastViewportW = window.innerWidth;
   let lastViewportH = window.innerHeight;
@@ -317,9 +317,10 @@
       const nextW = window.innerWidth;
       const nextH = window.innerHeight;
       const widthDelta = Math.abs(nextW - lastViewportW);
-      const heightDelta = Math.abs(nextH - lastViewportH);
 
-      if (mode === 'mobile' && widthDelta < 2 && heightDelta < MOBILE_BAR_RESIZE_EPS) {
+      if (mode === 'mobile' && widthDelta < MOBILE_WIDTH_RECALC_EPS) {
+        // Ignore mobile viewport-height oscillations (browser bars/menu focus).
+        // Recalculate only on substantial width changes (orientation/layout shift).
         lastViewportW = nextW;
         lastViewportH = nextH;
         return;
