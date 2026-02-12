@@ -25,6 +25,10 @@
   const NAV_COOLDOWN = 320;
   const TWEEN_MS = 450;
   const INTRO_FALLBACK_MS = 1800;
+  const MOBILE_BAR_RESIZE_EPS = 120;
+
+  let lastViewportW = window.innerWidth;
+  let lastViewportH = window.innerHeight;
 
   function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -79,6 +83,37 @@
     if (current && current.classList.contains('reveal')) {
       current.classList.add('is-visible');
     }
+  }
+
+  function clearMobileFrameFx() {
+    sections.forEach((section) => {
+      const frame = section.querySelector('.frame');
+      if (!frame) return;
+      frame.style.opacity = '';
+      frame.style.transform = '';
+    });
+  }
+
+  function updateMobileFrameFx() {
+    if (mode !== 'mobile') return;
+    const height = vpHeight();
+    const mid = height * 0.5;
+    const falloff = height * 0.62;
+
+    sections.forEach((section) => {
+      const frame = section.querySelector('.frame');
+      if (!frame) return;
+
+      const rect = section.getBoundingClientRect();
+      const center = rect.top + rect.height * 0.5;
+      const dist = center - mid;
+      const ratio = Math.min(1, Math.abs(dist) / falloff);
+      const opacity = 1 - ratio;
+      const translateY = dist < 0 ? -24 * ratio : 24 * ratio;
+
+      frame.style.opacity = `${opacity.toFixed(3)}`;
+      frame.style.transform = `translate3d(0, ${translateY.toFixed(2)}px, 0)`;
+    });
   }
 
   function updateDots() {
@@ -172,6 +207,7 @@
     } else {
       revealSection(index);
     }
+    updateMobileFrameFx();
   }
 
   function onMobileScroll() {
@@ -208,9 +244,8 @@
       );
 
       sections.forEach((section) => sectionObserver.observe(section));
-    } else {
-      window.addEventListener('scroll', onMobileScroll, { passive: true });
     }
+    window.addEventListener('scroll', onMobileScroll, { passive: true });
   }
 
   function enableMobileMode() {
@@ -225,6 +260,9 @@
       section.style.top = '';
       section.style.left = '';
       section.style.right = '';
+      if (section.classList.contains('reveal')) {
+        section.classList.add('is-visible');
+      }
     });
 
     setupMobileObservers();
@@ -235,6 +273,7 @@
     mode = 'desktop';
     document.body.classList.remove('is-native-mobile');
     cleanupMobileObservers();
+    clearMobileFrameFx();
 
     index = clampIndex(nearestMobileIndex());
     window.scrollTo({ top: 0, behavior: 'auto' });
@@ -255,10 +294,25 @@
     if (resizeRAF) cancelAnimationFrame(resizeRAF);
     resizeRAF = requestAnimationFrame(() => {
       resizeRAF = null;
+      const nextW = window.innerWidth;
+      const nextH = window.innerHeight;
+      const widthDelta = Math.abs(nextW - lastViewportW);
+      const heightDelta = Math.abs(nextH - lastViewportH);
+
+      if (mode === 'mobile' && widthDelta < 2 && heightDelta < MOBILE_BAR_RESIZE_EPS) {
+        lastViewportW = nextW;
+        lastViewportH = nextH;
+        return;
+      }
+
+      lastViewportW = nextW;
+      lastViewportH = nextH;
       setViewportVar();
       applyMode(false);
       if (mode === 'desktop' && !isAnimating) {
         layoutDesktop();
+      } else if (mode === 'mobile') {
+        syncMobileIndex();
       }
     });
   }
@@ -392,7 +446,6 @@
 
     window.addEventListener('resize', onResize);
     window.addEventListener('orientationchange', onResize);
-    window.visualViewport?.addEventListener('resize', onResize);
     window.addEventListener('wheel', onWheel, { passive: true });
     window.addEventListener('touchstart', onTouchStart, { passive: true });
     window.addEventListener('touchmove', onTouchMove, { passive: false });

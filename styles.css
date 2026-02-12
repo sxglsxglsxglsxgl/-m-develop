@@ -577,8 +577,9 @@ body.has-menu-open .burger-bar {
 
   body.is-native-mobile .slides {
     height: auto;
-    min-height: calc(var(--app-vh) + var(--safe-top) + var(--safe-bottom));
+    min-height: calc(100svh + var(--safe-top) + var(--safe-bottom));
     overflow: visible;
+    overflow-anchor: none;
   }
 
   body.is-native-mobile .slides__track {
@@ -596,7 +597,7 @@ body.has-menu-open .burger-bar {
     left: auto !important;
     right: auto !important;
     height: auto;
-    min-height: var(--app-vh);
+    min-height: 100svh;
     scroll-margin-top: var(--safe-top);
   }
 
@@ -606,11 +607,18 @@ body.has-menu-open .burger-bar {
   }
 
   body.is-native-mobile .hero {
-    min-height: var(--app-vh);
+    min-height: 100svh;
   }
 
   body.is-native-mobile .frame {
     padding-left: max(16px, var(--safe-left));
     padding-right: max(16px, var(--safe-right));
+    will-change: opacity, transform;
+    transition: opacity 140ms linear, transform 140ms linear;
+  }
+
+  body.is-native-mobile .slide.reveal {
+    opacity: 1;
+    transform: none;
   }
 }
